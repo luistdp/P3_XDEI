@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block header %}
+    <h1>{% block title %}Products{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Size</th>
+        <th>Total Stock</th>
+        <th>Total Max Capacity</th>
+        <th></th>
+        <th></th>
+    </tr>
+
+    {% for product,more_data in data %}
+    <tr>
+        {% set id = product.id.split(':') %}
+        {% set name = product.name.value %}
+        {% set price = product.price.value %}
+        {% set size = product.size.value %}
+        {% set total_stock = more_data[0] %}
+        {% set max_capacity = more_data[1] %}
+        <form method = "post" action ="{{url_for('update_product', product_id = id[3])}}">
+            <td>{{id[3]}}</td>
+            <td>
+                <input name="name" value = "{{name}}">
+            </td>
+            <td>
+                <input name="price" value = "{{price}}">
+            </td>
+            <td>
+                <input name="size" value = "{{size}}">
+            </td>
+            <td>{{total_stock}}</td>
+            <td>{{max_capacity}}</td>
+            <td>
+                <button type="sumbit">Update</button>
+            </td>
+        </form>
+        <form method="delete" action="{{url_for('delete_product',product_id = id)}}">
+            <td>
+                <button type = "submit">Delete</button>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+ <hr/>
+ <footer>
+     <p>&copy; 2023 </p>
+ </footer>
+{% endblock %}
