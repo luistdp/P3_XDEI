@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block header %}
+    <h1>{% block title %} Building {% endblock %}</h1>
+{% endblock %}
+{% block content %}
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Address Locality</th>
+        <th>Address Region</th>
+        <th>Street Address</th>
+        <th>Location</th>
+        <th>Category</th>
+        <th></th>
+        <th></th>
+    </tr>
+
+
+    <tr>
+        {% set id = building.id.split(':') %}
+        {% set name = building.name.value %}
+        {% set addressLocality = building.address.value.addressLocality %}
+        {% set addressRegion = building.address.value.addressRegion %}
+        {% set streetAddress = building.address.value.streetAddress %}
+        {% set location = building.location.value.coordinates %}
+        {% set category = building.category.value %}
+    <form method = "post" action="{{url_for('update_building', building_id = id[3])}}">
+        <td>
+            <input name="name" value = "{{name}}">
+        </td>
+        <td>
+            <input name="addressLocality" value = "{{addressLocality}}">
+        </td>
+        <td>
+            <input name="addressRegion" value = "{{addressRegion}}">
+        </td>
+        <td>
+            <input name="streetAddress" value = "{{streetAddress}}">
+        </td>
+        <td>
+            <input name="coordinate" value = "{{location}}">
+        </td>
+        <td>
+            <input name="category" value = "{{category}}">
+        </td>
+        <td>
+            <button type="sumbit">Update</button>
+        </td>
+    </form>
+    <form method="post" action="{{url_for('delete_building',building_id = id[3])}}">
+        <td>
+            <button type = "submit">Delete</button>
+        </td>
+    </form>
+    </tr>
+</table>
+
+{% set mapimg = building.mapurl %}
+<div class="container">
+    <img src="{{mapimg}}" alt="Your Image">
+    <table>
+        <caption>Products</caption>
+        <thead>
+            <tr>
+                <th>Product id</th>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Size</th>
+                <th>Shelf id</th>
+                <th>Shelf Name</th>
+                <th>Number of Items</th>
+                <th>Max Capacity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product,shelf in data %}
+            <tr>
+                {% set product_id = product.id.split(':') %}
+                {% set product_name = product.name.value %}
+                {% set price = product.price.value %}
+                {% set size = product.size.value %}
+                {% set shelf_id = shelf.id.split(':') %}
+                {% set shelf_name = shelf.name %}
+                {% set numberofitems = shelf.numberofitems  %}
+                {% set maxcapacity = shelf.maxcapacity %}
+                <td>{{product_id}}</td>
+                <td>{{product_name}}</td>
+                <td>{{price}}</td>
+                <td>{{size}}</td>
+                <td>{{shelf_id}}</td>
+                <td>{{shelf_name}}</td>
+                <td>{{numberofitems}}</td>
+                <td>{{maxcapacity}}</td>
+                <form method = "delete" action="{{url_for('buy_product', product_id = id[3])}}">
+                    <td>
+                        <button type = "submit">Buy</button>
+                    </td>
+                </form>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+ <hr/>
+ <footer>
+     <p>&copy; 2023 </p>
+ </footer>
+{% endblock %}

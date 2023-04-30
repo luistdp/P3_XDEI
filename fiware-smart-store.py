@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect,url_for,request
 import ast
+import math
 import ngsi_ld
 
 app = Flask(__name__)
@@ -37,14 +38,10 @@ def products():
     data = list()
     for product in products:
         product_id = product["id"]
-        print(product_id)
         code, shelfs = ngsi_ld.list_entities(type="Shelf",options="keyValues",
                                              q=f'stocks=="{product_id}"',headers=headers)
-        print(code)
         total_stock, total_capacity = 0,0
         for shelf in shelfs: 
-            print(shelf)
-            print(shelfs)
             if "maxCapacity" in shelf:
                 total_capacity += shelf["maxCapacity"]
             if "numberOfItems" in shelf:
@@ -58,7 +55,6 @@ def products():
                                data = data)
     else: 
         return render_template("error.html", code = code)
-
 
 @app.route('/Buildings/update_building/<building_id>', methods = ["GET","POST"])
 def update_building(building_id):
@@ -106,7 +102,7 @@ def delete_building(building_id):
         print(code)
     return redirect(url_for("buildings"))
 
-@app.route('/Products/update_product/<product_id>')
+@app.route('/Products/update_product/<product_id>', methods = ["GET", "POST"])
 def update_product(product_id):
     headers = ngsi_ld.set_headers(context_link=ngsi_ld.LINK, content_type=None)
     product_id = "urn:ngsi-ld:Product:" + product_id
@@ -119,15 +115,99 @@ def update_product(product_id):
                                   content_type="application/json")
     code = ngsi_ld.update_attr(product_id,attr_vals=entity,headers=headers)
     if code == 207:
-        print("Product succesfully updated")
+        print("Product succesfully updated!")
     return redirect(url_for("products"))
 
+@app.route('/Products/delete_product/<product_id>')
+def delete_product(product_id):
+    headers = ngsi_ld.set_headers(context_link=ngsi_ld.LINK, content_type=None)
+    product_id = "urn:ngsi-ld:Product:" + product_id
+    code = ngsi_ld.delete_entity(product_id,
+                                 headers=headers)
+    if code == 204:
+        headers = ngsi_ld.set_headers(context_link=ngsi_ld.LINK,content_type=None)
+        code, stockorders = ngsi_ld.list_entities(type="StockOrder", options="keyValues",
+                                                  q = f'orderedProduct=="{product_id}"',
+                                                  headers=headers)
+        code, shelfs = ngsi_ld.list_entities(type="Shelf", options="keyValues",
+                                             q=f'stocks=="{product_id}"',headers=headers)
+        stock_order_ids = [stockorder["id"] for stockorder in stockorders]
+        if len(stock_order_ids) > 0:
+            headers = ngsi_ld.set_headers(content_type="application/json")
+            code = ngsi_ld.batch_delete(entity_id_list=stock_order_ids,headers=headers)
+        if len(shelfs) > 0:
+            for shelf in shelfs: 
+                shelf["numberOfItems"] = 0
+                shelf["stocks"] = ":".join(product_id.split(":")[0:3]) + ":null"
+            headers = ngsi_ld.set_headers(context_link=ngsi_ld.LINK, content_type="application/json")
+            code = ngsi_ld.batch_update(entity_attr_list=shelfs,headers=headers)
+    return redirect(url_for("products"))
+
+def map_tile_url(zoom, location):
+    print(location)
+    tiles_per_row = math.pow(2,zoom)
+    longitude = location[0]
+    latitude = location[1]
+    longitude /= 360
+    longitude += 0.5
+    latitude =  0.5 - math.log(math.tan(math.pi / 4 + (latitude * math.pi) / 360)) / math.pi / 2.0
+    print(f"https://a.tile.openstreetmap.org/{zoom}/{math.floor(longitude * tiles_per_row)}/{math.floor(latitude * tiles_per_row)}.png")
+    return f"https://a.tile.openstreetmap.org/{zoom}/{math.floor(longitude * tiles_per_row)}/{math.floor(latitude * tiles_per_row)}.png"
+
+@app.route('/Building/<building_id>')
+def building(building_id):
+    headers = ngsi_ld.set_headers(context_link=ngsi_ld.LINK,
+                                  content_type=None)
+    building_id = "urn:ngsi-ld:Building:" + building_id
+    code, building = ngsi_ld.read_entity(building_id,
+                                       headers=headers)
+    mapurl = map_tile_url(15,building["location"]["value"]["coordinates"])
+    building["mapurl"] = mapurl
+    shelf_data = list()
+    product_data = list()
+    print(building)
+    if "furniture" in building:
+        shelf_d = dict()
+        if isinstance(building["furniture"]
+            for s in building:
+                code, shelf = ngsi_ld.read_entity(s,headers=headers)
+                shelf_d["id"] = shelf["id"]
+                shelf_d["name"] = shelf["name"]["value"]
+                shelf_d["maxcapacity"] = shelf["maxCapacity"]["value"]
+                shelf_d["numberofitems"] = shelf["numberOfItems"]["value"]
+                shelf_data.append(shelf_d)
+                if isinstance(shelf["stocks"]["object"], list):
+                    for pr in shelf["stocks"]["object"]:
+                        code,prod = ngsi_ld.read_entity(pr,headers=headers)
+                        product_data.append(prod)
+                else: 
+                    code,prod = ngsi_ld.read_entity(shelf["stocks"]["object"],headers=headers)
+                    product_data.append(prod)
+        else: 
+            code,shelf = ngsi_ld.read_entity(building["furniture"]["object"],headers=headers)
+            shelf_d["id"] = shelf["id"]
+            shelf_d["name"] = shelf["name"]["value"]
+            shelf_d["maxcapacity"] = shelf["maxCapacity"]["value"]
+            shelf_d["numberofitems"] = shelf["numberOfItems"]["value"]
+            shelf_data.append(shelf_d)
+            if isinstance(shelf["stocks"]["object"], list):
+                for pr in shelf["stocks"]["object"]:
+                    code,prod = ngsi_ld.read_entity(pr,headers=headers)
+                    product_data.append(prod)
+            else: 
+                code,prod = ngsi_ld.read_entity(shelf["stocks"]["object"],headers=headers)
+                product_data.append(prod)
+        data = [(prod,shelf) for prod,shelf in zip(product_data,shelf_data)]
+
+    return render_template("building.html",
+                           building = building,
+                           data = data)
 
 
-
-@app.route('/Products/delete_product')
-def delete_product():
-    pass 
+@app.route('/Product/<product_id>')
+def product(product_id):
+    pass
+        
 
 """
 @app.route('/Building/<store_id>')

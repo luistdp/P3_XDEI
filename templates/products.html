@@ -18,13 +18,14 @@
     {% for product,more_data in data %}
     <tr>
         {% set id = product.id.split(':') %}
+        {% set product_url = "/Product/" + id[3] %}
         {% set name = product.name.value %}
         {% set price = product.price.value %}
         {% set size = product.size.value %}
         {% set total_stock = more_data[0] %}
         {% set max_capacity = more_data[1] %}
         <form method = "post" action ="{{url_for('update_product', product_id = id[3])}}">
-            <td>{{id[3]}}</td>
+            <td><a href="{{product_url}}">{{id[3]}}</a></td>
             <td>
                 <input name="name" value = "{{name}}">
             </td>
@@ -40,7 +41,7 @@
                 <button type="sumbit">Update</button>
             </td>
         </form>
-        <form method="delete" action="{{url_for('delete_product',product_id = id)}}">
+        <form method="delete" action="{{url_for('delete_product',product_id = id[3])}}">
             <td>
                 <button type = "submit">Delete</button>
             </td>

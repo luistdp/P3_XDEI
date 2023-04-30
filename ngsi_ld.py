@@ -34,7 +34,6 @@ def list_entities(type = "", options = "count",
         request += f'&q={q}'
     r = requests.get(request,
                      headers=headers)
-    print(r.text)
     return (r.status_code, json.loads(r.text))
 
 def read_entity(entity_id, headers = None):
@@ -136,4 +135,4 @@ if __name__ == "__main__":
     #pprint.pprint(list_entities(type="Shelf", headers=headers))
     batch_delete(['urn:ngsi-ld:Product:012','urn:ngsi-ld:Product:013'],headers=headers)
     headers = set_headers(context_link=LINK,content_type=None)
-    pprint.pprint(list_entities(type="Shelf",options="keyValues",headers=headers))
+    pprint.pprint(list_entities(type="Shelf",headers=headers))
