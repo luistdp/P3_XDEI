@@ -56,6 +56,8 @@
 </table>
 
 {% set mapimg = building.mapurl %}
+<!--ChatGPT: HTML for image and table side by side; It doesnt look good when testing
+can you do it better -->
 <div class="container">
     <img src="{{mapimg}}" alt="Your Image">
     <table>
@@ -83,20 +85,22 @@
                 {% set shelf_name = shelf.name %}
                 {% set numberofitems = shelf.numberofitems  %}
                 {% set maxcapacity = shelf.maxcapacity %}
-                <td>{{product_id}}</td>
+                <td>{{product_id[3]}}</td>
                 <td>{{product_name}}</td>
                 <td>{{price}}</td>
                 <td>{{size}}</td>
-                <td>{{shelf_id}}</td>
+                <td>{{shelf_id[3]}}</td>
                 <td>{{shelf_name}}</td>
                 <td>{{numberofitems}}</td>
                 <td>{{maxcapacity}}</td>
-                <form method = "delete" action="{{url_for('buy_product', product_id = id[3])}}">
+                <form method = "post" action="{{url_for('buy_product',building_id= id[3] ,product_id = product_id[3])}}">
+                    <input type="hidden" name = "shelf_id" value="{{shelf_id[3]}}">
                     <td>
                         <button type = "submit">Buy</button>
                     </td>
                 </form>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

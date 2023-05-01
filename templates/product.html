@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block header %}
+    <h1>{% block title %}Products{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Size</th>
+        <th></th>
+        <th></th>
+    </tr>
+
+    <tr>
+        {% set id = product.id.split(':') %}
+        {% set product_url = "/Product/" + id[3] %}
+        {% set name = product.name.value %}
+        {% set price = product.price.value %}
+        {% set size = product.size.value %}
+        <form method = "post" action ="{{url_for('update_product', product_id = id[3])}}">
+            <td><a href="{{product_url}}">{{id[3]}}</a></td>
+            <td>
+                <input name="name" value = "{{name}}">
+            </td>
+            <td>
+                <input name="price" value = "{{price}}">
+            </td>
+            <td>
+                <input name="size" value = "{{size}}">
+            </td>
+            <td>
+                <button type="sumbit">Update</button>
+            </td>
+        </form>
+        <form method="delete" action="{{url_for('delete_product',product_id = id[3])}}">
+            <td>
+                <button type = "submit">Delete</button>
+            </td>
+        </form>
+    </tr>
+</table>
+
+<!--RECICLADO PARA ESTE APARTADO: 
+    ChatGPT: HTML for image and table side by side; It doesnt look good when testing
+    can you do it better -->
+
+<div class="container">
+    <table>
+        <caption>Shelfs</caption>
+        <thead>
+            <tr>
+                <th>Shelf id</th>
+                <th>Shelf Name</th>
+                <th>Shelf Location</th>
+                <th>Number of Items</th>
+                <th>Max Capacity</th>
+                <th>Person id</th>
+                <th>Person name</th>
+                <th>Building id</th>
+                <th>Building name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shelf in shelfs %}
+            <tr>
+                {% set shelf_id = shelf.id.split(':') %}
+                {% set shelf_name = shelf.name %}
+                {% set shelf_location = shelf.location.coordinates %}
+                {% set shelf_numberofitems = shelf.numberOfItems %}
+                {% set shelf_maxcapacity = shelf.maxCapacity  %}
+                {% set person_id = shelf.installedBy.split(":") %}
+                {% set person_name = shelf.person %}
+                {% set building_id = shelf.locatedIn.split(":") %}
+                {% set building_name = shelf.building %}
+                <td>{{shelf_id[3]}}</td>
+                <td>{{shelf_name}}</td>
+                <td>{{shelf_location}}</td>
+                <td>{{shelf_numberofitems}}</td>
+                <td>{{shelf_maxcapacity}}</td>
+                <td>{{person_id[3]}}</td>
+                <td>{{person_name}}</td>
+                <td>{{building_id[3]}}</td>
+                <td>{{building_name}}</td>
+                <form method = "post" action="{{url_for('buy_product_page',product_id = id[3])}}">
+                    <input type = "hidden" name = "shelf_id" value="{{shelf_id[3]}}">
+                    <td>
+                        <button type = "submit">Buy</button>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="container">
+    <table>
+        <caption>Stock Orders</caption>
+        <thead>
+            <tr>
+                <th>Stock Order id</th>
+                <th>Order Date</th>
+                <th>Stock Count</th>
+                <th>Person id</th>
+                <th>Person name</th>
+                <th>Building id</th>
+                <th>Building name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stockorder in stockorders %}
+            <tr>
+                {% set stockorder_id = stockorder.id.split(':') %}
+                {% set order_date = stockorder.orderDate %}
+                {% set stock_count = stockorder.stockCount %}
+                {% set person_id_stock = stockorder.requestedBy.split(":") %}
+                {% set person_name_stock = stockorder.person %}
+                {% set building_id_stock = stockorder.requestedFor.split(":") %}
+                {% set building_name_stock = stockorder.building %}
+                <td>{{stockorder_id[3]}}</td>
+                <td>{{order_date}}</td>
+                <td>{{stock_count}}</td>
+                <td>{{person_id_stock[3]}}</td>
+                <td>{{person_name_stock}}</td>
+                <td>{{building_id_stock[3]}}</td>
+                <td>{{building_name_stock}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+ <hr/>
+ <footer>
+     <p>&copy; 2023 </p>
+ </footer>
+{% endblock %}

@@ -44,7 +44,6 @@ def read_entity(entity_id, headers = None):
 def delete_entity(entity_id,headers = None):
     request = base_path + f'/entities/{entity_id}'
     r = requests.delete(request,headers=headers)
-    print(r.text)
     return r.status_code
 
 # Operaciones CRUD sobre atributos
@@ -60,7 +59,6 @@ def update_attr(entity_id, attr_vals, headers = None):
     request = request + '/attrs'
     r = requests.patch(request, data=json.dumps(attr_vals), 
                       headers=headers)
-    print(r.text)
     return r.status_code
 
 def delete_attr(entity_id, attr, headers = None):
@@ -73,20 +71,17 @@ def batch_create(entity_attr_list, headers = None):
     request = base_path + '/entityOperations/upsert?options=update'
     r = requests.post(request, data = json.dumps(entity_attr_list), 
                       headers=headers)
-    print(r.text)
     return r.status_code
 
 def batch_update(entity_attr_list, headers = None):
     request = base_path + '/entityOperations/update'
     r = requests.post(request,data=json.dumps(entity_attr_list),
                        headers=headers)
-    print(r.text)
     return r.status_code
 
 def batch_delete(entity_id_list, headers = None):
     request = base_path + '/entityOperations/delete'
     r = requests.post(request,json = entity_id_list, headers=headers)
-    print(r.text)
     return r.status_code
 
 if __name__ == "__main__":
@@ -135,4 +130,4 @@ if __name__ == "__main__":
     #pprint.pprint(list_entities(type="Shelf", headers=headers))
     batch_delete(['urn:ngsi-ld:Product:012','urn:ngsi-ld:Product:013'],headers=headers)
     headers = set_headers(context_link=LINK,content_type=None)
-    pprint.pprint(list_entities(type="Shelf",headers=headers))
+    pprint.pprint(list_entities(type="Shelf",options="keyValues",headers=headers))
